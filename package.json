@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-freshteam",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Gatsby source plugin for Fresh Team.",
   "main": "index.js",
   "scripts": {
@@ -17,5 +17,9 @@
   "dependencies": {
     "change-case": "^4.1.2",
     "node-fetch": "^2.6.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheArkhamKnight781526/gatsby-source-freshteam.git"
   }
 }
