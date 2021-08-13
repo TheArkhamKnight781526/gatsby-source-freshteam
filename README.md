@@ -1,113 +1,111 @@
-<p align="center">
-  <a href="https://www.gatsbyjs.com">
-    <img alt="Gatsby" src="https://www.gatsbyjs.com/Gatsby-Monogram.svg" width="60" />
-  </a>
-</p>
-<h1 align="center">
-  Starter for a Gatsby Plugin
-</h1>
+<h1 align="center">gatsby-source-freshteam</h1>
 
-A minimal boilerplate for the essential files Gatsby looks for in a plugin.
 
-## 🚀 Quick start
+## Installation
 
-To get started creating a new plugin, you can follow these steps:
-
-1. Initialize a new plugin from the starter with `gatsby new`
-
-```shell
-gatsby new my-plugin https://github.com/gatsbyjs/gatsby-starter-plugin
+To install, run:
+```
+npm install gatsby-source-freshteam
 ```
 
-If you already have a Gatsby site, you can use it. Otherwise, you can [create a new Gatsby site](https://www.gatsbyjs.com/tutorial/part-zero/#create-a-gatsby-site) to test your plugin.
+## Getting Started
 
-Your directory structure will look similar to this:
+To use this plugin, you will need a compatible plan (Blossom, Garden or Estate - Sprout will not work). You will also need an API Key. This can be found very easily:
+* Go to your freshteam domain (example-46292682.freshteam.com)
+* In the top right, click on your user profile - this will open a menu
+* On this menu, click 'API Key'
+* Complete the reCAPTCHA Challenge, and your API Key will be displayed
 
-```text
-/my-gatsby-site
-├── gatsby-config.js
-└── /src
-    └── /pages
-        └── /index.js
-/my-plugin
-├── gatsby-browser.js
-├── gatsby-node.js
-├── gatsby-ssr.js
-├── index.js
-├── package.json
-└── README.md
-```
+## Using This Plugin
 
-With `my-gatsby-site` being your Gatsby site, and `my-plugin` being your plugin. You could also include the plugin in your [site's `plugins` folder](https://www.gatsbyjs.com/docs/loading-plugins-from-your-local-plugins-folder/).
-
-2. Include the plugin in a Gatsby site
-
-Inside of the `gatsby-config.js` file of your site (in this case, `my-gatsby-site`), include the plugin in the `plugins` array:
-
-```javascript
+In the gatsby-config.js file of your website, in the module.exports, add the following:
+```js
 module.exports = {
-  plugins: [
-    // other gatsby plugins
-    // ...
-    require.resolve(`../my-plugin`),
-  ],
+    plugins: [
+        ...
+        {
+            resolve: 'gatsby-source-freshteam',
+            options: {
+                apiToken: 'your_api_token',
+                url: 'your_freshteam_url',
+                type: 'data_type' 
+            }
+        }
+    ]
 }
 ```
 
-The line `require.resolve('../my-plugin')` is what accesses the plugin based on its filepath on your computer, and adds it as a plugin when Gatsby runs.
+The different types are as follows:
+* employees
+* branches
+* departments
+* sub_departments
+* business_units
+* teams
+* levels
+* timeoffs
+* roles
+* job_postings
+* candidate_sources
+* user_functions
+* new_hires
 
-_You can use this method to test and develop your plugin before you publish it to a package registry like npm. Once published, you would instead install it and [add the plugin name to the array](https://www.gatsbyjs.com/docs/using-a-plugin-in-your-site/). You can read about other ways to connect your plugin to your site including using `npm link` or `yarn workspaces` in the [doc on creating local plugins](https://www.gatsbyjs.com/docs/creating-a-local-plugin/#developing-a-local-plugin-that-is-outside-your-project)._
+More info about the different data types can be found in the API docs:
 
-3. Verify the plugin was added correctly
+https://developers.freshteam.com/api/
 
-The plugin added by the starter implements a single Gatsby API in the `gatsby-node` that logs a message to the console. When you run `gatsby develop` or `gatsby build` in the site that implements your plugin, you should see this message.
+Type can either be a string or an array of strings.
 
-You can verify your plugin was added to your site correctly by running `gatsby develop` for the site.
+### **Rate Limits**
 
-You should now see a message logged to the console in the preinit phase of the Gatsby build process:
+The amount of fields you can query at once is dependent on the number of subscribed employees in your organization. As per the docs (https://developers.freshteam.com/api/#ratelimit), the rate limits are as follows:
 
-```shell
-$ gatsby develop
-success open and validate gatsby-configs - 0.033s
-success load plugins - 0.074s
-Loaded gatsby-starter-plugin
-success onPreInit - 0.016s
-...
+| Plan    | Rate Limit (p/m)                  |
+|---------|-----------------------------------|
+| Sprout  | 0 (Again, will **not** work)      |
+| Blossom | Number of subscribed employees    |
+| Garden  | Number of subscried employees     |
+| Estate  | 2x Number of subscribed employees |
+
+Feel free to request as many fields as you want in the plugin, but be aware that the Freshteam API may send back an 'Error 429: Too Many Requests' response, in which case the plugin will **not** load. Unfortunately, there is nothing I can do about that.
+
+## Example Query
+Provided everything has loaded correctly, data can be fetched from GraphQL using a simple query. Here is an example using the 'job_postings' type:
+```gql
+query MyQuery {
+  allJobPostings {
+    edges {
+      node {
+        title
+        description
+        remote
+      }
+    }
+  }
+}
 ```
 
-4. Rename the plugin in the `package.json`
-
-When you clone the site, the information in the `package.json` will need to be updated. Name your plugin based off of [Gatsby's conventions for naming plugins](https://www.gatsbyjs.com/docs/naming-a-plugin/).
-
-## 🧐 What's inside?
-
-This starter generates the [files Gatsby looks for in plugins](https://www.gatsbyjs.com/docs/files-gatsby-looks-for-in-a-plugin/).
-
-```text
-/my-plugin
-├── .gitignore
-├── gatsby-browser.js
-├── gatsby-node.js
-├── gatsby-ssr.js
-├── index.js
-├── LICENSE
-├── package.json
-└── README.md
+And the response:
+```json
+{
+    "data": {
+      "allJobPostings": {
+        "edges": [
+          {
+            "node": {
+              "title": "Web Developer (Remote)",
+              "description": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+              "remote": true
+            }
+          }
+        ]
+      }
+    }
+}
 ```
+<br />
 
-- **`.gitignore`**: This file tells git which files it should not track / not maintain a version history for.
-- **`gatsby-browser.js`**: This file is where Gatsby expects to find any usage of the [Gatsby browser APIs](https://www.gatsbyjs.com/docs/browser-apis/) (if any). These allow customization/extension of default Gatsby settings affecting the browser.
-- **`gatsby-node.js`**: This file is where Gatsby expects to find any usage of the [Gatsby Node APIs](https://www.gatsbyjs.com/docs/node-apis/) (if any). These allow customization/extension of default Gatsby settings affecting pieces of the site build process.
-- **`gatsby-ssr.js`**: This file is where Gatsby expects to find any usage of the [Gatsby server-side rendering APIs](https://www.gatsbyjs.com/docs/ssr-apis/) (if any). These allow customization of default Gatsby settings affecting server-side rendering.
-- **`index.js`**: A file that will be loaded by default when the plugin is [required by another application](https://docs.npmjs.com/creating-node-js-modules#create-the-file-that-will-be-loaded-when-your-module-is-required-by-another-application0). You can adjust what file is used by updating the `main` field of the `package.json`.
-- **`LICENSE`**: This plugin starter is licensed under the 0BSD license. This means that you can see this file as a placeholder and replace it with your own license.
-- **`package.json`**: A manifest file for Node.js projects, which includes things like metadata (the plugin's name, author, etc). This manifest is how npm knows which packages to install for your project.
-- **`README.md`**: A text file containing useful reference information about your plugin.
+Please submit any issues through GitHub, I will attempt to fix them ASAP. Alternatively, if you want to contribute, I'd be really grateful for your contributions! Create a pull request on GitHub, and I'll take a look!
+<br />
 
-## 🎓 Learning Gatsby
-
-If you're looking for more guidance on plugins, how they work, or what their role is in the Gatsby ecosystem, check out some of these resources:
-
-- The [Creating Plugins](https://www.gatsbyjs.com/docs/creating-plugins/) section of the docs has information on authoring and maintaining plugins yourself.
-- The conceptual guide on [Plugins, Themes, and Starters](https://www.gatsbyjs.com/docs/plugins-themes-and-starters/) compares and contrasts plugins with other pieces of the Gatsby ecosystem. It can also help you [decide what to choose between a plugin, starter, or theme](https://www.gatsbyjs.com/docs/plugins-themes-and-starters/#deciding-which-to-use).
-- The [Gatsby plugin library](https://www.gatsbyjs.com/plugins/) has over 1750 official as well as community developed plugins that can get you up and running faster and borrow ideas from.
+## Enjoy!
